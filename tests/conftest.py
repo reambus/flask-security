@@ -10,6 +10,7 @@
 """
 
 import os
+import sys
 import tempfile
 import time
 from datetime import datetime
@@ -22,10 +23,12 @@ from flask_mail import Mail
 from speaklater import is_lazy_string
 from utils import Response, populate_data
 
+
 from flask_security import MongoEngineUserDatastore, PeeweeUserDatastore, \
     PonyUserDatastore, RoleMixin, Security, SQLAlchemySessionUserDatastore, \
-    SQLAlchemyUserDatastore, UserMixin, auth_required, auth_token_required, \
-    http_auth_required, login_required, roles_accepted, roles_required
+    SQLAlchemyUserDatastore, NDBUserDatastore, UserMixin, auth_required, \
+    auth_token_required, http_auth_required, login_required, roles_accepted, \
+    roles_required
 
 
 class JSONEncoder(BaseEncoder):
@@ -134,6 +137,38 @@ def app(request):
         return 'Page 1'
     return app
 
+
+@pytest.fixture()
+def ndb_datastore(app):
+    #init google cloud sdk
+    GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK')
+    sdk_path = os.path.join(GOOGLE_CLOUD_SDK, 'platform/google_appengine')
+    sys.path.insert(0, sdk_path)
+    import dev_appserver
+    dev_appserver.fix_sys_path()
+    
+    from google.appengine.ext import ndb
+    from google.appengine.ext import testbed
+    
+    test_bed = testbed.Testbed()
+    test_bed.activate()
+    test_bed.init_datastore_v3_stub()
+    test_bed.init_memcache_stub()
+    
+    class Role(ndb.Model):
+        name = ndb.StringProperty()
+        description = ndb.StringProperty()
+    
+    class User(ndb.Model):
+        email = ndb.StringProperty()
+        username = ndb.StringProperty()
+        password = ndb.StringProperty()
+        active = ndb.BooleanProperty()
+        roles = ndb.IntegerProperty(repeated = True)
+        
+    yield NDBUserDatastore(User, Role)
+    
+    test_bed.deactivate()
 
 @pytest.yield_fixture()
 def mongoengine_datastore(app):
@@ -439,14 +474,15 @@ def get_message(app):
 
 
 @pytest.fixture(params=['sqlalchemy', 'sqlalchemy-session', 'mongoengine',
-                        'peewee', 'pony'])
+                        'peewee', 'pony', 'ndb'])
 def datastore(
         request,
         sqlalchemy_datastore,
         sqlalchemy_session_datastore,
         mongoengine_datastore,
         peewee_datastore,
-        pony_datastore):
+        pony_datastore,
+        ndb_datastore):
     if request.param == 'sqlalchemy':
         rv = sqlalchemy_datastore
     elif request.param == 'sqlalchemy-session':
@@ -457,6 +493,8 @@ def datastore(
         rv = peewee_datastore
     elif request.param == 'pony':
         rv = pony_datastore
+    elif request.param == 'ndb':
+        rv = ndb_datastore
     return rv
 
 
