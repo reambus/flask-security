@@ -30,9 +30,10 @@ class NDBDatastore(Datastore):
     def put(self, model):
         model.put()
         return model
-    
+
     def delete(self, model):
         return model.delete()
+
 
 class SQLAlchemyDatastore(Datastore):
     def commit(self):
@@ -233,12 +234,13 @@ class UserDatastore(object):
 
 
 class NDBUserDatastore(NDBDatastore, UserDatastore):
-    
+
     def __init__(self, user_model, role_model):
-        UserDatastore.__init__(self, user_model, role_model) 
-    
+        UserDatastore.__init__(self, user_model, role_model)
+
     def find_role(self, *args, **kwargs):
         return self.role_model.query(self.role_model.name == args[0]).get()
+
 
 class SQLAlchemyUserDatastore(SQLAlchemyDatastore, UserDatastore):
     """A SQLAlchemy datastore implementation for Flask-Security that assumes the

@@ -140,35 +140,36 @@ def app(request):
 
 @pytest.fixture()
 def ndb_datastore(app):
-    #init google cloud sdk
+    # init google cloud sdk
     GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK')
     sdk_path = os.path.join(GOOGLE_CLOUD_SDK, 'platform/google_appengine')
     sys.path.insert(0, sdk_path)
     import dev_appserver
     dev_appserver.fix_sys_path()
-    
+
     from google.appengine.ext import ndb
     from google.appengine.ext import testbed
-    
+
     test_bed = testbed.Testbed()
     test_bed.activate()
     test_bed.init_datastore_v3_stub()
     test_bed.init_memcache_stub()
-    
+
     class Role(ndb.Model):
         name = ndb.StringProperty()
         description = ndb.StringProperty()
-    
+
     class User(ndb.Model):
         email = ndb.StringProperty()
         username = ndb.StringProperty()
         password = ndb.StringProperty()
         active = ndb.BooleanProperty()
-        roles = ndb.IntegerProperty(repeated = True)
-        
+        roles = ndb.IntegerProperty(repeated=True)
+
     yield NDBUserDatastore(User, Role)
-    
+
     test_bed.deactivate()
+
 
 @pytest.yield_fixture()
 def mongoengine_datastore(app):
