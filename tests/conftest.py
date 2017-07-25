@@ -142,6 +142,11 @@ def app(request):
 def ndb_datastore(app):
     # init google cloud sdk
     GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK')
+    if not GOOGLE_CLOUD_SDK:
+        print("""
+        No GOOGLE_CLOUD_SDK environment variable, please install
+        google cloud sdk and set environment variable
+        """)
     sdk_path = os.path.join(GOOGLE_CLOUD_SDK, 'platform/google_appengine')
     sys.path.insert(0, sdk_path)
     import dev_appserver
@@ -165,8 +170,25 @@ def ndb_datastore(app):
         password = ndb.StringProperty()
         active = ndb.BooleanProperty()
         roles = ndb.IntegerProperty(repeated=True)
-
-    yield NDBUserDatastore(User, Role)
+        
+        @property
+        def id(self):
+            return self.key.id()
+        
+        def has_role(self, role_name):
+            role_id = Role.query(Role.name == role_name).get().key.id()
+            result = UserRole.query(UserRole.user_id == self.key.id(), 
+                           UserRole.role_id == role_id).get()
+            if result:
+                return True
+            else:
+                return False
+    
+    class UserRole(ndb.Model):
+        user_id = ndb.IntegerProperty()
+        role_id = ndb.IntegerProperty()
+    
+    yield NDBUserDatastore(User, Role, UserRole)
 
     test_bed.deactivate()
 

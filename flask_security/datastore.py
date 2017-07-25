@@ -235,11 +235,53 @@ class UserDatastore(object):
 
 class NDBUserDatastore(NDBDatastore, UserDatastore):
 
-    def __init__(self, user_model, role_model):
+    def __init__(self, user_model, role_model, user_role_link):
         UserDatastore.__init__(self, user_model, role_model)
+        self.user_role_link = user_role_link
 
-    def find_role(self, *args, **kwargs):
-        return self.role_model.query(self.role_model.name == args[0]).get()
+    def add_role_to_user(self, user, role):
+        user, role = self._prepare_role_modify_args(user, role)
+        query = self.user_role_link.query(self.user_role_link.user_id == user.key.id(),
+                            self.user_role_link.role_id == role.key.id())
+        if query.count():
+            return False
+        else:
+            self.user_role_link(user_id=user.key.id(), 
+                                role_id=role.key.id()).put()
+            return True
+        return UserDatastore.add_role_to_user(self, user, role)
+    
+    def get_user(self, id_or_email):
+        user = None
+        if isinstance(id_or_email, long):    
+            id = long(id_or_email)
+            return self.user_model.get_by_id(id)
+            
+        if isinstance(id_or_email, str):
+            email_or_username = str(id_or_email)
+            user = self.user_model.query(self.user_model.email == email_or_username).get()
+            if user:
+                return user
+            user = self.user_model.query(self.user_model.username == email_or_username).get()
+            if user:
+                return user
+        return None
+    
+    def find_user(self, email):
+        return self.user_model.query(self.user_model.email == email).get()
+    
+    def find_role(self, role_name):
+        return self.role_model.query(self.role_model.name == role_name).get()
+    
+    def remove_role_from_user(self, user, role):
+        role_id = self.role_model.query(self.role_model.name == role).get().key.id()
+        result = self.user_role_link.query(self.user_role_link.user_id == user.id,
+                                  self.user_role_link.role_id == role_id).get()
+        if result:
+            result.key.delete()
+            return True
+        else:
+            return False
 
 
 class SQLAlchemyUserDatastore(SQLAlchemyDatastore, UserDatastore):
