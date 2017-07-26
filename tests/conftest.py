@@ -170,24 +170,22 @@ def ndb_datastore(app):
         password = ndb.StringProperty()
         active = ndb.BooleanProperty()
         roles = ndb.IntegerProperty(repeated=True)
-        
+
         @property
         def id(self):
             return self.key.id()
-        
+
         def has_role(self, role_name):
             role_id = Role.query(Role.name == role_name).get().key.id()
-            result = UserRole.query(UserRole.user_id == self.key.id(), 
-                           UserRole.role_id == role_id).get()
-            if result:
+            if role_id in self.roles:
                 return True
             else:
                 return False
-    
+
     class UserRole(ndb.Model):
         user_id = ndb.IntegerProperty()
         role_id = ndb.IntegerProperty()
-    
+
     yield NDBUserDatastore(User, Role, UserRole)
 
     test_bed.deactivate()

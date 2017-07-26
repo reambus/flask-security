@@ -32,7 +32,7 @@ class NDBDatastore(Datastore):
         return model
 
     def delete(self, model):
-        return model.delete()
+        return model.key.delete()
 
 
 class SQLAlchemyDatastore(Datastore):
@@ -239,25 +239,41 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
         UserDatastore.__init__(self, user_model, role_model)
         self.user_role_link = user_role_link
 
+    def create_user(self, **kwargs):
+        kwargs = self._prepare_create_user_args(**kwargs)
+        roles = kwargs.pop('roles')
+        role_ids = [r.key.id() for r in roles]
+        kwargs['roles'] = role_ids
+        user = self.user_model(**kwargs)
+        return self.put(user)
+
     def add_role_to_user(self, user, role):
         user, role = self._prepare_role_modify_args(user, role)
-        query = self.user_role_link.query(self.user_role_link.user_id == user.key.id(),
-                            self.user_role_link.role_id == role.key.id())
-        if query.count():
+        
+        if role.key.id() in user.roles:
             return False
         else:
-            self.user_role_link(user_id=user.key.id(), 
-                                role_id=role.key.id()).put()
+            user.roles.append(role.key.id())
+            user.put()
             return True
-        return UserDatastore.add_role_to_user(self, user, role)
     
+    def remove_role_from_user(self, user, role):
+        user, role = self._prepare_role_modify_args(user, role)
+        role_id = role.key.id()
+        if role_id in user.roles:
+            user.roles.remove(role_id)
+            user.put()
+            return True
+        else:
+            return False
+        
     def get_user(self, id_or_email):
         user = None
         if isinstance(id_or_email, long):    
             id = long(id_or_email)
             return self.user_model.get_by_id(id)
             
-        if isinstance(id_or_email, str):
+        if isinstance(id_or_email, string_types):
             email_or_username = str(id_or_email)
             user = self.user_model.query(self.user_model.email == email_or_username).get()
             if user:
@@ -272,16 +288,6 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
     
     def find_role(self, role_name):
         return self.role_model.query(self.role_model.name == role_name).get()
-    
-    def remove_role_from_user(self, user, role):
-        role_id = self.role_model.query(self.role_model.name == role).get().key.id()
-        result = self.user_role_link.query(self.user_role_link.user_id == user.id,
-                                  self.user_role_link.role_id == role_id).get()
-        if result:
-            result.key.delete()
-            return True
-        else:
-            return False
 
 
 class SQLAlchemyUserDatastore(SQLAlchemyDatastore, UserDatastore):

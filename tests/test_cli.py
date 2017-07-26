@@ -118,6 +118,7 @@ def test_cli_addremove_role(script_info):
     result = runner.invoke(
         roles_remove, ['a@example.org', 'superuser'],
         obj=script_info)
+    print(result)
     assert result.exit_code == 0
 
 
