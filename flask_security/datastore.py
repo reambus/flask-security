@@ -249,14 +249,13 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
 
     def add_role_to_user(self, user, role):
         user, role = self._prepare_role_modify_args(user, role)
-        
         if role.key.id() in user.roles:
             return False
         else:
             user.roles.append(role.key.id())
             user.put()
             return True
-    
+
     def remove_role_from_user(self, user, role):
         user, role = self._prepare_role_modify_args(user, role)
         role_id = role.key.id()
@@ -266,26 +265,28 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
             return True
         else:
             return False
-        
+
     def get_user(self, id_or_email):
         user = None
-        if isinstance(id_or_email, long):    
+        if isinstance(id_or_email, long):
             id = long(id_or_email)
             return self.user_model.get_by_id(id)
-            
+
         if isinstance(id_or_email, string_types):
             email_or_username = str(id_or_email)
-            user = self.user_model.query(self.user_model.email == email_or_username).get()
+            user = self.user_model.query(
+                self.user_model.email == email_or_username).get()
             if user:
                 return user
-            user = self.user_model.query(self.user_model.username == email_or_username).get()
+            user = self.user_model.query(
+                self.user_model.username == email_or_username).get()
             if user:
                 return user
         return None
-    
+
     def find_user(self, email):
         return self.user_model.query(self.user_model.email == email).get()
-    
+
     def find_role(self, role_name):
         return self.role_model.query(self.role_model.name == role_name).get()
 
