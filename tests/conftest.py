@@ -141,7 +141,7 @@ def app(request):
 @pytest.fixture()
 def ndb_datastore(app):
     # init google cloud sdk
-    GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK')
+    GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK', None)
     if not GOOGLE_CLOUD_SDK:
         print("""
         No GOOGLE_CLOUD_SDK environment variable, please install

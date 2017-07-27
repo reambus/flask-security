@@ -49,6 +49,12 @@ before_install:
         virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
         source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
       fi
+  - |
+      tmpdir="$(mktemp -d)"
+      wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O "${tmpdir}/google-cloud-sdk.tar.gz"
+      tar -xzvf "${tmpdir}/google-cloud-sdk.tar.gz" -C "${tmpdir}"
+      rm "${tmpdir}/google-cloud-sdk.tar.gz"
+      export GOOGLE_CLOUD_SDK="${tmpdir}/google-cloud-sdk"
 
 install:
   - "pip install -r .travis-${REQUIREMENTS}-requirements.txt"
