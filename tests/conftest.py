@@ -142,9 +142,13 @@ def app(request):
 def ndb_datastore(app):
     # init google cloud sdk
     if os.environ.get('TRAVIS'):
+        print('Build on Travis CI')
         build_dir = os.environ.get('TRAVIS_BUILD_DIR')
+        print("TRAVIS_BUILD_DIR: {}".format(build_dir))
         GOOGLE_CLOUD_SDK = os.path.join(build_dir, 'google-cloud-sdk')
+        print('google cloud sdk: {}'.format(GOOGLE_CLOUD_SDK))
     else:
+        print('Build locally')
         GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK', None)
         if not GOOGLE_CLOUD_SDK:
             print("""
@@ -152,6 +156,7 @@ def ndb_datastore(app):
                     google cloud sdk and set environment variable
                   """)
     sdk_path = os.path.join(GOOGLE_CLOUD_SDK, 'platform/google_appengine')
+    print('google sdk path : {}'.format(sdk_path))
     sys.path.insert(0, sdk_path)
     import dev_appserver
     dev_appserver.fix_sys_path()
