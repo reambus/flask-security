@@ -53,6 +53,7 @@ before_install:
       wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
       tar -xzvf "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz" > /dev/null
       rm "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
+      ls -a "$TRAVIS_BUILD_DIR"
       "$TRAVIS_BUILD_DIR/google-cloud-sdk/bin/install.sh -q"
 
 install:
