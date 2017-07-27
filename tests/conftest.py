@@ -144,7 +144,7 @@ def ndb_datastore(app):
     if os.environ.get('TRAVIS'):
         GOOGLE_CLOUD_SDK = os.path.join(os.getcwd(), 'google-cloud-sdk')
     else:
-        GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK', None)    
+        GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK', None)
         if not GOOGLE_CLOUD_SDK:
             print("""
                     No GOOGLE_CLOUD_SDK environment variable, please install
