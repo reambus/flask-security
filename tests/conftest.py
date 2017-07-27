@@ -142,7 +142,8 @@ def app(request):
 def ndb_datastore(app):
     # init google cloud sdk
     if os.environ.get('TRAVIS'):
-        GOOGLE_CLOUD_SDK = os.path.join(os.getcwd(), 'google-cloud-sdk')
+        build_dir = os.environ.get('TRAVIS_BUILD_DIR')
+        GOOGLE_CLOUD_SDK = os.path.join(build_dir, 'google-cloud-sdk')
     else:
         GOOGLE_CLOUD_SDK = os.environ.get('GOOGLE_CLOUD_SDK', None)
         if not GOOGLE_CLOUD_SDK:

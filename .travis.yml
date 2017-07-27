@@ -50,9 +50,9 @@ before_install:
         source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
       fi
   - |
-      wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O google-cloud-sdk.tar.gz
-      tar -xzvf google-cloud-sdk.tar.gz
-      rm google-cloud-sdk.tar.gz
+      wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
+      tar -xzvf "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
+      rm "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
 
 install:
   - "pip install -r .travis-${REQUIREMENTS}-requirements.txt"
