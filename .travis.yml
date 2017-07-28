@@ -50,11 +50,10 @@ before_install:
         source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
       fi
   - |
-      wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
-      tar -xzvf "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz" > /dev/null
-      rm "$TRAVIS_BUILD_DIR/google-cloud-sdk.tar.gz"
-      ls -a "$TRAVIS_BUILD_DIR"
-      "$TRAVIS_BUILD_DIR/google-cloud-sdk/bin/install.sh -q"
+      wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-164.0.0-linux-x86.tar.gz -O google-cloud-sdk.tar.gz
+      tar -xzvf google-cloud-sdk.tar.gz
+      rm google-cloud-sdk.tar.gz
+      ./google-cloud-sdk/install.sh -q --additional-components app-engine-python
 
 install:
   - "pip install -r .travis-${REQUIREMENTS}-requirements.txt"
