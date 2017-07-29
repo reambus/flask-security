@@ -269,10 +269,10 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
 
     def get_user(self, id_or_email):
         user = None
-        if sys.version_info > (3,):
-            long = int
-        if isinstance(id_or_email, long):
-            id = long(id_or_email)
+        if sys.version_info > (2,):
+            int = long
+        if isinstance(id_or_email, int):
+            id = int(id_or_email)
             return self.user_model.get_by_id(id)
 
         if isinstance(id_or_email, string_types):
