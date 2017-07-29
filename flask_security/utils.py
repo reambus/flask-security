@@ -56,9 +56,7 @@ else:  # pragma: no cover
     text_type = unicode  # pragma: no flakes
 
 if PY3:
-    int_types = int
-else:
-    int_types = long
+    long = int
 
 
 def _(translate):

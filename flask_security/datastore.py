@@ -9,7 +9,7 @@
     :license: MIT, see LICENSE for more details.
 """
 
-from .utils import get_identity_attributes, string_types, int_types
+from .utils import get_identity_attributes, string_types
 
 
 class Datastore(object):
@@ -269,8 +269,8 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
     def get_user(self, id_or_email):
         user = None
 
-        if isinstance(id_or_email, int_types):
-            id = int_types(id_or_email)
+        if isinstance(id_or_email, long):
+            id = long(id_or_email)
             return self.user_model.get_by_id(id)
 
         if isinstance(id_or_email, string_types):
