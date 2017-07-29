@@ -55,6 +55,11 @@ else:  # pragma: no cover
     string_types = basestring,  # pragma: no flakes
     text_type = unicode  # pragma: no flakes
 
+if PY3:
+    int_types = int
+else:
+    int_types = long
+
 
 def _(translate):
     """Identity function to mark strings for translation."""
