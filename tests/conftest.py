@@ -164,24 +164,51 @@ def ndb_datastore(app):
     test_bed.init_datastore_v3_stub()
     test_bed.init_memcache_stub()
 
-    class Role(ndb.Model):
+    class Role(ndb.Model, RoleMixin):
         name = ndb.StringProperty()
         description = ndb.StringProperty()
-
-    class User(ndb.Model):
+        
+        def __init__(self, *args, **kwargs):
+            if kwargs.get('name', None):
+                kwargs['id'] = kwargs['name']
+                kwargs['key'] = None
+            super(Role, self).__init__(*args, **kwargs)
+        
+    class User(ndb.Model, UserMixin):
         email = ndb.StringProperty()
         username = ndb.StringProperty()
         password = ndb.StringProperty()
         active = ndb.BooleanProperty()
-        roles = ndb.IntegerProperty(repeated=True)
-
+        role_names = ndb.StringProperty(repeated=True)
+        last_login_at = ndb.DateTimeProperty()
+        current_login_at = ndb.DateTimeProperty()
+        last_login_ip = ndb.StringProperty()
+        current_login_ip = ndb.StringProperty()
+        login_count = ndb.IntegerProperty()
+        confirmed_at = ndb.DateTimeProperty()
+        
+        def __init__(self, *args, **kwargs):
+            roles = kwargs.get('roles')
+            if isinstance(roles, list):
+                kwargs['role_names'] = kwargs.pop('roles')
+            super(User, self).__init__(*args, **kwargs)
+        
+        @property
+        def roles(self):
+            role_keys = [ndb.Key(Role, role_name) for role_name in self.role_names]
+            roles = ndb.get_multi(role_keys)
+            return roles
+        
+        @roles.setter
+        def roles(self, value):
+            raise NotImplemented()
+        
         @property
         def id(self):
             return self.key.id()
 
         def has_role(self, role_name):
-            role_id = Role.query(Role.name == role_name).get().key.id()
-            if role_id in self.roles:
+            if role_name in self.role_names:
                 return True
             else:
                 return False
@@ -477,15 +504,23 @@ def pony_app(app, pony_datastore):
 
 
 @pytest.fixture()
-def client(request, sqlalchemy_app):
-    app = sqlalchemy_app()
+def ndb_app(app, ndb_datastore):
+    def create():
+        app.security = Security(app, datastore=ndb_datastore)
+        return app
+    return create
+
+
+@pytest.fixture()
+def client(request, ndb_app):
+    app = ndb_app()
     populate_data(app)
     return app.test_client()
 
 
 @pytest.yield_fixture()
-def in_app_context(request, sqlalchemy_app):
-    app = sqlalchemy_app()
+def in_app_context(request, ndb_app):
+    app = ndb_app()
     with app.app_context():
         yield app
 
@@ -498,29 +533,9 @@ def get_message(app):
     return fn
 
 
-@pytest.fixture(params=['sqlalchemy', 'sqlalchemy-session', 'mongoengine',
-                        'peewee', 'pony', 'ndb'])
-def datastore(
-        request,
-        sqlalchemy_datastore,
-        sqlalchemy_session_datastore,
-        mongoengine_datastore,
-        peewee_datastore,
-        pony_datastore,
-        ndb_datastore):
-    if request.param == 'sqlalchemy':
-        rv = sqlalchemy_datastore
-    elif request.param == 'sqlalchemy-session':
-        rv = sqlalchemy_session_datastore
-    elif request.param == 'mongoengine':
-        rv = mongoengine_datastore
-    elif request.param == 'peewee':
-        rv = peewee_datastore
-    elif request.param == 'pony':
-        rv = pony_datastore
-    elif request.param == 'ndb':
-        rv = ndb_datastore
-    return rv
+@pytest.fixture()
+def datastore(request, ndb_datastore):
+    return ndb_datastore
 
 
 @pytest.fixture()

@@ -239,29 +239,28 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
     def __init__(self, user_model, role_model, user_role_link):
         UserDatastore.__init__(self, user_model, role_model)
         self.user_role_link = user_role_link
-
+        
     def create_user(self, **kwargs):
         kwargs = self._prepare_create_user_args(**kwargs)
         roles = kwargs.pop('roles')
-        role_ids = [r.key.id() for r in roles]
-        kwargs['roles'] = role_ids
+        role_names = [r.name for r in roles]
+        kwargs['roles'] = role_names
         user = self.user_model(**kwargs)
         return self.put(user)
 
     def add_role_to_user(self, user, role):
         user, role = self._prepare_role_modify_args(user, role)
-        if role.key.id() in user.roles:
+        if role.name in user.role_names:
             return False
         else:
-            user.roles.append(role.key.id())
+            user.role_names.append(role.name)
             user.put()
             return True
 
     def remove_role_from_user(self, user, role):
         user, role = self._prepare_role_modify_args(user, role)
-        role_id = role.key.id()
-        if role_id in user.roles:
-            user.roles.remove(role_id)
+        if role.name in user.role_names:
+            user.role_names.remove(role.name)
             user.put()
             return True
         else:
@@ -272,24 +271,36 @@ class NDBUserDatastore(NDBDatastore, UserDatastore):
         user = None
         if sys.version_info > (3,):
             long = int
+        #get user by id
         if isinstance(id_or_email, long):
-            id = long(id_or_email)
-            return self.user_model.get_by_id(id)
+            model_id = long(id_or_email)
+            user = self.user_model.get_by_id(model_id)
+            return user
 
         if isinstance(id_or_email, string_types):
             email_or_username = str(id_or_email)
+            email_or_username = email_or_username.lower()
+            #get user by email
             user = self.user_model.query(
                 self.user_model.email == email_or_username).get()
             if user:
                 return user
+            #get user by username
             user = self.user_model.query(
                 self.user_model.username == email_or_username).get()
             if user:
                 return user
         return None
 
-    def find_user(self, email):
-        return self.user_model.query(self.user_model.email == email).get()
+    def find_user(self, email=None, id=None):
+        user = None
+        if id:
+            return self.user_model.get_by_id(long(id))
+        if email:
+            email = email.lower()
+            user = self.user_model.query(self.user_model.email == email).get()
+            return user
+        return user
 
     def find_role(self, role_name):
         return self.role_model.query(self.role_model.name == role_name).get()

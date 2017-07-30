@@ -32,7 +32,7 @@ def test_async_email_task(app, client):
     assert app.mail_sent is True
 
 
-def test_register_blueprint_flag(app, sqlalchemy_datastore):
+def test_register_blueprint_flag(app, datastore):
     app.security = Security(app, datastore=Security, register_blueprint=False)
     client = app.test_client()
     response = client.get('/login')
@@ -42,7 +42,7 @@ def test_register_blueprint_flag(app, sqlalchemy_datastore):
 @pytest.mark.registerable()
 @pytest.mark.recoverable()
 @pytest.mark.changeable()
-def test_basic_custom_forms(app, sqlalchemy_datastore):
+def test_basic_custom_forms(app, datastore):
     class MyLoginForm(LoginForm):
         email = StringField('My Login Email Address Field')
 
@@ -64,7 +64,7 @@ def test_basic_custom_forms(app, sqlalchemy_datastore):
         password = PasswordField('My Change Password Field')
 
     app.security = Security(app,
-                            datastore=sqlalchemy_datastore,
+                            datastore=datastore,
                             login_form=MyLoginForm,
                             register_form=MyRegisterForm,
                             forgot_password_form=MyForgotPasswordForm,
@@ -98,7 +98,7 @@ def test_basic_custom_forms(app, sqlalchemy_datastore):
 
 @pytest.mark.registerable()
 @pytest.mark.confirmable()
-def test_confirmable_custom_form(app, sqlalchemy_datastore):
+def test_confirmable_custom_form(app, datastore):
     app.config['SECURITY_REGISTERABLE'] = True
     app.config['SECURITY_CONFIRMABLE'] = True
 
@@ -109,7 +109,7 @@ def test_confirmable_custom_form(app, sqlalchemy_datastore):
         email = StringField('My Send Confirmation Email Address Field')
 
     app.security = Security(app,
-                            datastore=sqlalchemy_datastore,
+                            datastore=datastore,
                             send_confirmation_form=MySendConfirmationForm,
                             confirm_register_form=MyRegisterForm)
 
@@ -138,8 +138,8 @@ def test_passwordless_custom_form(app, sqlalchemy_datastore):
     assert b'My Passwordless Email Address Field' in response.data
 
 
-def test_addition_identity_attributes(app, sqlalchemy_datastore):
-    init_app_with_options(app, sqlalchemy_datastore, **{
+def test_addition_identity_attributes(app, datastore):
+    init_app_with_options(app, datastore, **{
         'SECURITY_USER_IDENTITY_ATTRIBUTES': ('email', 'username')
     })
     client = app.test_client()
@@ -147,8 +147,8 @@ def test_addition_identity_attributes(app, sqlalchemy_datastore):
     assert b'Hello matt@lp.com' in response.data
 
 
-def test_flash_messages_off(app, sqlalchemy_datastore, get_message):
-    init_app_with_options(app, sqlalchemy_datastore, **{
+def test_flash_messages_off(app, datastore, get_message):
+    init_app_with_options(app, datastore, **{
         'SECURITY_FLASH_MESSAGES': False
     })
     client = app.test_client()
@@ -156,15 +156,15 @@ def test_flash_messages_off(app, sqlalchemy_datastore, get_message):
     assert get_message('LOGIN') not in response.data
 
 
-def test_invalid_hash_scheme(app, sqlalchemy_datastore, get_message):
+def test_invalid_hash_scheme(app, datastore, get_message):
     with pytest.raises(ValueError):
-        init_app_with_options(app, sqlalchemy_datastore, **{
+        init_app_with_options(app, datastore, **{
             'SECURITY_PASSWORD_HASH': 'bogus'
         })
 
 
-def test_change_hash_type(app, sqlalchemy_datastore):
-    init_app_with_options(app, sqlalchemy_datastore, **{
+def test_change_hash_type(app, datastore):
+    init_app_with_options(app, datastore, **{
         'SECURITY_PASSWORD_HASH': 'plaintext',
         'SECURITY_PASSWORD_SALT': None,
         'SECURITY_PASSWORD_SCHEMES': ['bcrypt', 'plaintext']
@@ -175,7 +175,7 @@ def test_change_hash_type(app, sqlalchemy_datastore):
 
     app.security = Security(
         app,
-        datastore=sqlalchemy_datastore,
+        datastore=datastore,
         register_blueprint=False)
 
     client = app.test_client()
@@ -254,7 +254,7 @@ def test_set_unauthorized_handler(app, client):
 
 
 @pytest.mark.registerable()
-def test_custom_forms_via_config(app, sqlalchemy_datastore):
+def test_custom_forms_via_config(app, datastore):
     class MyLoginForm(LoginForm):
         email = StringField('My Login Email Address Field')
 
@@ -264,7 +264,7 @@ def test_custom_forms_via_config(app, sqlalchemy_datastore):
     app.config['SECURITY_LOGIN_FORM'] = MyLoginForm
     app.config['SECURITY_REGISTER_FORM'] = MyRegisterForm
 
-    security = Security(datastore=sqlalchemy_datastore)
+    security = Security(datastore=datastore)
     security.init_app(app)
 
     client = app.test_client()

@@ -21,7 +21,7 @@ pytestmark = pytest.mark.confirmable()
 
 
 @pytest.mark.registerable()
-def test_confirmable_flag(app, client, sqlalchemy_datastore, get_message):
+def test_confirmable_flag(app, client, datastore, get_message):
     recorded_confirms = []
     recorded_instructions_sent = []
 
@@ -112,8 +112,8 @@ def test_confirmable_flag(app, client, sqlalchemy_datastore, get_message):
     token = registrations[0]['confirm_token']
 
     with app.app_context():
-        sqlalchemy_datastore.delete(user)
-        sqlalchemy_datastore.commit()
+        datastore.delete(user)
+        datastore.commit()
 
     response = client.get('/confirm/' + token, follow_redirects=True)
     assert get_message('INVALID_CONFIRMATION_TOKEN') in response.data
@@ -140,8 +140,7 @@ def test_expired_confirmation_token(client, get_message):
 
 
 @pytest.mark.registerable()
-def test_email_conflict_for_confirmation_token(app, client, get_message,
-                                               sqlalchemy_datastore):
+def test_email_conflict_for_confirmation_token(app, client, get_message, datastore):
     with capture_registrations() as registrations:
         data = dict(email='mary@lp.com', password='password', next='')
         client.post('/register', data=data, follow_redirects=True)
@@ -152,8 +151,8 @@ def test_email_conflict_for_confirmation_token(app, client, get_message,
     # Change the user's email
     user.email = 'tom@lp.com'
     with app.app_context():
-        sqlalchemy_datastore.put(user)
-        sqlalchemy_datastore.commit()
+        datastore.put(user)
+        datastore.commit()
 
     response = client.get('/confirm/' + token, follow_redirects=True)
     msg = get_message('INVALID_CONFIRMATION_TOKEN')
