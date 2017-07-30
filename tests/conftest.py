@@ -11,9 +11,6 @@
 
 import os
 import sys
-import tempfile
-import time
-from datetime import datetime
 
 import pytest
 from flask import Flask, render_template
@@ -24,10 +21,10 @@ from speaklater import is_lazy_string
 from utils import Response, populate_data
 
 
-from flask_security import  RoleMixin, Security, NDBUserDatastore, \
-                            UserMixin, auth_required, auth_token_required, \
-                            http_auth_required, login_required, roles_accepted, \
-                            roles_required
+from flask_security import RoleMixin, Security, NDBUserDatastore, \
+                           UserMixin, auth_required, auth_token_required, \
+                           http_auth_required, login_required, \
+                           roles_accepted, roles_required
 
 
 class JSONEncoder(BaseEncoder):
@@ -166,13 +163,13 @@ def ndb_datastore(app):
     class Role(ndb.Model, RoleMixin):
         name = ndb.StringProperty()
         description = ndb.StringProperty()
-        
+
         def __init__(self, *args, **kwargs):
             if kwargs.get('name', None):
                 kwargs['id'] = kwargs['name']
                 kwargs['key'] = None
             super(Role, self).__init__(*args, **kwargs)
-        
+
     class User(ndb.Model, UserMixin):
         email = ndb.StringProperty()
         username = ndb.StringProperty()
@@ -185,23 +182,24 @@ def ndb_datastore(app):
         current_login_ip = ndb.StringProperty()
         login_count = ndb.IntegerProperty()
         confirmed_at = ndb.DateTimeProperty()
-        
+
         def __init__(self, *args, **kwargs):
             roles = kwargs.get('roles')
             if isinstance(roles, list):
                 kwargs['role_names'] = kwargs.pop('roles')
             super(User, self).__init__(*args, **kwargs)
-        
+
         @property
         def roles(self):
-            role_keys = [ndb.Key(Role, role_name) for role_name in self.role_names]
+            role_keys = [ndb.Key(Role, role_name) for role_name in
+                         self.role_names]
             roles = ndb.get_multi(role_keys)
             return roles
-        
+
         @roles.setter
         def roles(self, value):
             raise NotImplemented()
-        
+
         @property
         def id(self):
             return self.key.id()
