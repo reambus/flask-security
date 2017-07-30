@@ -11,9 +11,7 @@
 """
 
 from .core import Security, RoleMixin, UserMixin, AnonymousUser, current_user
-from .datastore import SQLAlchemyUserDatastore, MongoEngineUserDatastore, \
-    PeeweeUserDatastore, PonyUserDatastore, SQLAlchemySessionUserDatastore, \
-    NDBUserDatastore
+from .datastore import NDBUserDatastore
 from .decorators import auth_token_required, http_auth_required, \
     login_required, roles_accepted, roles_required, auth_required
 from .forms import ForgotPasswordForm, LoginForm, RegisterForm, \

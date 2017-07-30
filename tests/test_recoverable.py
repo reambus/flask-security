@@ -120,8 +120,8 @@ def test_recoverable_flag(app, client, get_message):
     assert get_message('INVALID_RESET_PASSWORD_TOKEN') in response.data
 
 
-def test_login_form_description(sqlalchemy_app):
-    app = sqlalchemy_app()
+def test_login_form_description(ndb_app):
+    app = ndb_app()
     with app.test_request_context('/login'):
         login_form = LoginForm()
         expected = '<a href="/reset">Forgot password?</a>'
